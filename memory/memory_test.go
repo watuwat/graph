@@ -39,6 +39,34 @@ func TestMemoryGraph(t *testing.T) {
 		t.Fatalf("expect users map to be called 2 times but got %d", count)
 	}
 
+	count = 0
+	users.Map(func(n graph.Node) bool {
+		count++
+		return true
+	})
+
+	if count != 1 {
+		t.Fatalf("expect users map to be called 1 times since we return true but got %d", count)
+	}
+
+	var ids []string
+	users.Map(func(n graph.Node) bool {
+		ids = append(ids, n.Val())
+		return false
+	})
+
+	if len(ids) != 2 {
+		t.Fatalf("expect users map to be called 2 times with val but got %d", count)
+	}
+
+	if ids[0] != "1" {
+		t.Fatalf("expect first edge to be 1 but got %s", ids[0])
+	}
+
+	if ids[1] != "2" {
+		t.Fatalf("expect second edge to be 2 but got %s", ids[1])
+	}
+
 	readonlyRoot := graph.Readonly(root)
 	if readonlyRoot == nil {
 		t.Fatalf("expect root to be MemoryGraph which implements OnlyReader interface but got nil")
