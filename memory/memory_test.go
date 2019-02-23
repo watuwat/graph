@@ -1,13 +1,14 @@
-package graph_test
+package memory_test
 
 import (
 	"testing"
 
 	"watuwat.com/graph"
+	"watuwat.com/graph/memory"
 )
 
 func TestMemoryGraph(t *testing.T) {
-	root := graph.NewMemoryNode("root")
+	root := memory.New("root")
 	users := root.Path("users")
 	user1 := root.Path("users.1")
 	user2 := root.Path("users.2")

@@ -1,4 +1,4 @@
-package graph
+package memory
 
 import (
 	"strings"
@@ -29,7 +29,7 @@ func (m *MemoryNode) Path(p string) graph.Node {
 				return nil
 			}
 
-			tmp := NewMemoryNode(name)
+			tmp := New(name)
 			prev.edges[name] = tmp
 			curr = tmp
 		}
@@ -63,7 +63,7 @@ func (m *MemoryNode) Readonly() graph.Node {
 	}
 }
 
-func NewMemoryNode(name string) *MemoryNode {
+func New(name string) *MemoryNode {
 	return &MemoryNode{
 		name:     name,
 		edges:    make(map[string]*MemoryNode),
