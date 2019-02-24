@@ -39,9 +39,32 @@ func (m *MemoryNode) Path(p string) graph.Node {
 	return curr
 }
 
+func (m *MemoryNode) Set(n graph.Node) {
+	if m.readonly {
+		return
+	}
+
+	given, ok := n.(*MemoryNode)
+	if !ok {
+		panic("given node in Set is not MemoryNode")
+	}
+
+	_, ok = m.edges[given.name]
+	if ok {
+		return
+	}
+
+	m.edges[given.name] = given
+}
+
 func (m *MemoryNode) Map(fn func(graph.Node) bool) {
 	for key := range m.edges {
-		if ok := fn(m.edges[key]); ok {
+		node := m.edges[key]
+		if m.readonly {
+			node = node.Readonly().(*MemoryNode)
+		}
+
+		if ok := fn(node); ok {
 			break
 		}
 	}
@@ -56,6 +79,10 @@ func (m *MemoryNode) Val() string {
 }
 
 func (m *MemoryNode) Readonly() graph.Node {
+	if m.readonly {
+		return m
+	}
+
 	return &MemoryNode{
 		name:     m.name,
 		edges:    m.edges,

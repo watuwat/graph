@@ -7,11 +7,21 @@ import (
 	"watuwat.com/graph/memory"
 )
 
-func TestMemoryGraph(t *testing.T) {
+func indexOf(element string, data []string) int {
+	for i, v := range data {
+		if element == v {
+			return i
+		}
+	}
+	return -1 //not found.
+}
+
+func TestSize(t *testing.T) {
 	root := memory.New("root")
 	users := root.Path("users")
-	user1 := root.Path("users.1")
-	user2 := root.Path("users.2")
+
+	root.Path("users.1")
+	root.Path("users.2")
 
 	if root.Size() != 1 {
 		t.Fatalf("expect root size to be 1 but got %d", root.Size())
@@ -20,6 +30,13 @@ func TestMemoryGraph(t *testing.T) {
 	if users.Size() != 2 {
 		t.Fatalf("expect users size to be 2 but got %d", users.Size())
 	}
+}
+
+func TestVal(t *testing.T) {
+	root := memory.New("root")
+	users := root.Path("users")
+	user1 := users.Path("1")
+	user2 := users.Path("2")
 
 	if user1.Val() != "1" {
 		t.Fatalf("expect user1's val to be 1 but got %s", user1.Val())
@@ -28,6 +45,14 @@ func TestMemoryGraph(t *testing.T) {
 	if user2.Val() != "2" {
 		t.Fatalf("expect user2's val to be 2 but got %s", user2.Val())
 	}
+}
+
+func TestMap(t *testing.T) {
+	root := memory.New("root")
+	users := root.Path("users")
+
+	root.Path("users.1")
+	root.Path("users.2")
 
 	count := 0
 	users.Map(func(n graph.Node) bool {
@@ -59,13 +84,20 @@ func TestMemoryGraph(t *testing.T) {
 		t.Fatalf("expect users map to be called 2 times with val but got %d", count)
 	}
 
-	if ids[0] != "1" {
-		t.Fatalf("expect first edge to be 1 but got %s", ids[0])
+	if indexOf("1", ids) == -1 {
+		t.Fatalf("expect one of edge to be 1 but not found")
 	}
 
-	if ids[1] != "2" {
-		t.Fatalf("expect second edge to be 2 but got %s", ids[1])
+	if indexOf("2", ids) == -1 {
+		t.Fatalf("expect one of edge to be 1 but not found")
 	}
+}
+
+func TestReadOnly(t *testing.T) {
+	root := memory.New("root")
+
+	root.Path("users.1")
+	root.Path("users.2")
 
 	readonlyRoot := graph.Readonly(root)
 	if readonlyRoot == nil {
@@ -79,5 +111,26 @@ func TestMemoryGraph(t *testing.T) {
 
 	if readonlyRoot.Size() != 1 {
 		t.Fatalf("expect readonly root size to be 1 but got %d", readonlyRoot.Size())
+	}
+}
+
+func TestSet(t *testing.T) {
+	root := memory.New("root")
+
+	users := root.Path("users")
+	admins := root.Path("admins")
+	admin1 := root.Path("admin1")
+	admin2 := root.Path("admin2")
+
+	// similar to root.Path("users.admins")
+	users.Set(admins)
+
+	// similar to root.Path("users.admins.admin1")
+	users.Path("admins").Set(admin1)
+	// similar to root.Path("users.admins.admin2")
+	users.Path("admins").Set(admin2)
+
+	if admins.Size() != 2 {
+		t.Fatalf("expect admins to have 2 users but got %d", admins.Size())
 	}
 }

@@ -1,6 +1,7 @@
 package graph
 
 type Node interface {
+	Set(n Node)
 	Path(p string) Node
 	Map(fn func(Node) bool)
 	Size() int
