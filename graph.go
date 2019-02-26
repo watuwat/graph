@@ -2,7 +2,64 @@ package graph
 
 import (
 	"strings"
+
+	"github.com/rs/xid"
 )
+
+/*
+
+	# 1
+
+	if node.isRoot {
+
+	}
+
+	- if node is root, we need to add name as key and generate a uuid as value
+	-
+	- prev.Set(name, uuid)
+
+	root := graph.New(storage)
+
+	root.Path("a.b")
+
+	root: {
+		a: <id-a>
+		<id-b>: <id-b>
+	}
+
+	<id-a>: {
+		b: <id-b>
+	}
+
+	<id-b>: {
+
+	}
+
+	# 2
+
+	root := graph.New(storage)
+
+	a := root.Path("a")
+	b := root.Path("b")
+
+	a.Set(b)
+
+	root : {
+		a: <id-a>
+		b: <id-b>
+	}
+
+	<id-a>: {
+		b: <id-b>
+	}
+
+	<id-b>: {}
+
+*/
+
+func uuid() string {
+	return xid.New().String()
+}
 
 type Bucket interface {
 	Get(name string) (*Node, bool)
@@ -17,16 +74,19 @@ type Storage interface {
 }
 
 type Node struct {
+	id       string
 	name     string
 	storage  Storage
 	edges    Bucket
 	readonly bool
+	isRoot   bool
 }
 
 func (m *Node) Path(p string) *Node {
-	names := strings.Split(p, ".")
-
 	var ok bool
+
+	names := strings.Split(p, ".")
+	root := m.storage.Bucket("root")
 
 	current := m
 	prev := current
@@ -37,9 +97,18 @@ func (m *Node) Path(p string) *Node {
 				return nil
 			}
 
-			tmp := NewNode(name, m.storage)
-			prev.edges.Set(name, tmp)
-			current = tmp
+			id := uuid()
+			node := newNode(id, name, false, m.storage)
+
+			// we need to create a node
+			if prev.isRoot {
+				root.Set(name, node)
+			} else {
+				root.Set(id, node)
+				prev.edges.Set(name, node)
+			}
+
+			current = node
 		}
 		prev = current
 	}
@@ -90,11 +159,17 @@ func (m *Node) Readonly() *Node {
 	}
 }
 
-func NewNode(name string, storage Storage) *Node {
+func newNode(id string, name string, isRoot bool, storage Storage) *Node {
 	return &Node{
+		id:       id,
 		name:     name,
 		storage:  storage,
-		edges:    storage.Bucket(name),
+		edges:    storage.Bucket(id),
 		readonly: false,
+		isRoot:   isRoot,
 	}
+}
+
+func New(storage Storage) *Node {
+	return newNode("root", "root", true, storage)
 }

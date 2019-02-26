@@ -9,6 +9,7 @@ import (
 // each bucket should have a random unique name
 // each of those name will store in `buckets` bucket.
 // for every unique node, we will have a bucket
+// name.
 
 var _ Storage = &BoltStorage{}
 var _ Bucket = &BoltBucket{}
